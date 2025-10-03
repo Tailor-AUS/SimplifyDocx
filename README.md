@@ -1,175 +1,283 @@
-# Overview
+# DOCX Converter & Live Editor
 
-DOCX files are complex, and their complexity makes scraping documents
-for their content difficult. The aim of this package is to simplify
-`.docx` files to just the components which carry meaning, thereby easing the
-process of pattern matching and data extraction by converting a `.docx`
-file into a predictable and *human readable* JSON file.
+A powerful web-based tool for converting DOCX files to HTML/JSON with real-time editing capabilities and fidelity comparison.
 
-Simplifying a complex document down to it's *meaningful* parts of course
-requires taking a position on what does and does-not convey meaning in a
-document. Generally, this package takes the stance that the document
-structure (body, paragraphs, tables, etc.) are meaningful as is the text
-itself, whereas text styling (font, font-weight, etc.) is ignored almost
-entirely, with the exception of paragraph indentation and numbering which
-is often used to create lists, block quotes, etc.  Furthermore, the
-opinions expressed by this package are explained in the Options section
-below and can be changed to suite your needs.
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Python](https://img.shields.io/badge/python-3.7+-green.svg)
+![License](https://img.shields.io/badge/license-MIT-orange.svg)
 
-# Usage
-```python
-import docx
-from simplify_docx import simplify
+## 🌟 Features
 
-# read in a document 
-my_doc = docx.Document("/path/to/my/favorite/file.docx")
+### 📊 Multi-Panel Comparison Views
+- **All 3 Panels**: Side-by-side comparison of Original DOCX | HTML | JSON
+- **Paired Views**: Compare any two formats (Original vs HTML, Original vs JSON, HTML vs JSON)
+- **Single Views**: Focus on individual formats
+- **8 Different View Modes** for comprehensive analysis
 
-# coerce to JSON using the standard options
-my_doc_as_json = simplify(my_doc)
+### ✨ Live JSON Editor
+- **Real-time HTML Preview**: Edit JSON and see HTML changes instantly
+- **Live Mode**: Auto-update preview as you type (500ms debounce)
+- **Manual Mode**: Update preview on-demand
+- **JSON Formatting**: Beautify/format JSON with one click
+- **Validation**: Real-time JSON syntax validation
+- **Status Feedback**: Visual indicators for success/errors
 
-# or with non-standard options
-my_doc_as_json = simplify(my_doc,{"remove-leading-white-space":False})
+### 🎨 Visual Comparison
+- **Original DOCX Preview**: View document as image (requires Poppler)
+- **HTML Rendering**: See how document renders in browser
+- **JSON Structure**: Explore simplified document structure
+
+### 🚀 User-Friendly Interface
+- **Drag & Drop Upload**: Easy file upload
+- **Responsive Design**: Works on all screen sizes
+- **Beautiful UI**: Modern gradient design with smooth animations
+
+## 📦 Installation
+
+### Prerequisites
+
+- Python 3.7 or higher
+- pip package manager
+- Microsoft Word (optional, for DOCX to image conversion on Windows)
+- Poppler (optional, for PDF to image conversion)
+
+### Quick Start
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Tailor-AUS/SimplifyDocx.git
+   cd SimplifyDocx
+   ```
+
+2. **Install Python dependencies**
+   ```bash
+   pip install -e .
+   pip install flask flask-cors mammoth docx2pdf pdf2image
+   ```
+
+3. **Install Poppler (Optional - for image preview)**
+
+   **Windows:**
+   ```bash
+   curl -L -o poppler.zip https://github.com/oschwartz10612/poppler-windows/releases/download/v24.08.0-0/Release-24.08.0-0.zip
+   powershell -Command "Expand-Archive -Path poppler.zip -DestinationPath . -Force"
+   ```
+
+   **macOS:**
+   ```bash
+   brew install poppler
+   ```
+
+   **Linux:**
+   ```bash
+   sudo apt-get install poppler-utils
+   ```
+
+4. **Run the application**
+   ```bash
+   python app.py
+   ```
+
+5. **Open your browser**
+   Navigate to: http://127.0.0.1:5000
+
+## 🎯 Usage
+
+### Basic Workflow
+
+1. **Upload Document**
+   - Drag & drop a DOCX file or click to browse
+   - Supports files up to 16MB
+
+2. **View Comparisons**
+   - Switch between different view modes using tabs
+   - Compare original formatting with conversions
+
+3. **Live Editing**
+   - Go to "✨ Live JSON Editor" tab
+   - Edit JSON structure on the left
+   - Click "Enable Live Preview" for auto-updates
+   - Or click "Update Preview" for manual updates
+   - Watch HTML preview update in real-time on the right
+
+### View Modes
+
+- **All 3 Panels**: Original | HTML | JSON side-by-side
+- **Live JSON Editor**: Edit JSON with live HTML preview
+- **Original vs HTML**: Compare original document with HTML rendering
+- **Original vs JSON**: Compare original with simplified structure
+- **HTML vs JSON**: Compare HTML output with JSON structure
+- **Original Only**: Full view of original DOCX
+- **HTML Only**: Full view of HTML conversion
+- **JSON Only**: Full view of JSON structure
+
+## 🏗️ Architecture
+
+### Backend (Flask)
+
+**app.py** - Main application server
+- File upload handling with security
+- DOCX to HTML conversion (Mammoth)
+- DOCX to JSON simplification (Simplify-Docx library)
+- DOCX to image conversion (docx2pdf + pdf2image + Poppler)
+- JSON to HTML live conversion endpoint
+- CORS enabled for development
+
+### Frontend (HTML/CSS/JavaScript)
+
+**templates/index.html** - Single-page application
+- Responsive grid layout system
+- 8 different view modes
+- Real-time JSON editor with syntax validation
+- Live preview with debounced updates
+- Drag & drop file upload
+- Status notifications and error handling
+
+### Core Libraries
+
+- **Flask**: Web framework
+- **Mammoth**: DOCX to HTML conversion
+- **python-docx**: DOCX parsing
+- **Simplify-Docx**: Document structure simplification
+- **docx2pdf**: DOCX to PDF conversion
+- **pdf2image**: PDF to image conversion
+- **Poppler**: PDF rendering engine
+
+## 📁 Project Structure
+
+```
+SimplifyDocx/
+├── app.py                    # Flask application
+├── templates/
+│   └── index.html           # Web interface
+├── src/                     # Simplify-Docx library
+│   └── simplify_docx/
+├── uploads/                 # Temporary file storage (gitignored)
+├── poppler-24.08.0/        # Poppler binaries (gitignored)
+├── README.md               # This file
+├── WEB_APP_README.md       # Additional documentation
+├── setup.py                # Python package setup
+└── .gitignore              # Git ignore rules
 ```
 
-# Installation
+## 🔧 Configuration
 
-This project relies on the `python-docx` package which can be installed via
-`pip install python-docx`. **However**, as of this writing, if you wish to
-scrape documents which contain (A) form fields such as drop down lists,
-checkboxes and text inputs or (B) nested documents (subdocs, altChunks,
-etc.), you'll need to clone [this fork](https://github.com/jdthorpe/python-docx) of the python-docx package.
+### File Size Limit
+Edit in `app.py`:
+```python
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
+```
 
-# Options
+### Live Preview Debounce
+Edit in `templates/index.html`:
+```javascript
+updateTimeout = setTimeout(() => {
+    updatePreview();
+}, 500); // 500ms delay
+```
 
-### General
+### Server Settings
+```python
+app.run(
+    debug=True,              # Set to False in production
+    host='127.0.0.1',       # Change to '0.0.0.0' for network access
+    port=5000,              # Change port if needed
+    use_reloader=False,     # Prevent double loading
+    threaded=True           # Enable threading
+)
+```
 
-* **"friendly-name"**: (*Default = `True`*): Use user-friendly type names
-	such as "table-cell", over standard element names like "CT_Tc"
+## 🐛 Troubleshooting
 
-* **"merge-consecutive-text"**: (*Default = `True`*): Sentences and even single
-	words can be represented by multiple text elements. If `True`,
-	concatenate consecutive text elements into a single text element.
+### Image Preview Not Available
+- **Cause**: Poppler not installed or not in PATH
+- **Solution**: Install Poppler following instructions above
+- **Note**: Image preview is optional; HTML and JSON views work without it
 
-### Ignoring Invisible things
+### Microsoft Word Error (Windows)
+- **Cause**: docx2pdf requires Microsoft Word
+- **Solution**: Install Microsoft Word or accept that image preview won't work
+- **Alternative**: All other features work without Word
 
-* **"ignore-empty-paragraphs"**: (*Default = `True`*): Empty paragraphs are
-	often used for styling purpose and rarely have significance in the
-	meaning of the document.
-* **"ignore-empty-text"**: (*Default = `True`*): Empty text runs can make an
-	otherwise empty paragraph appear to contain data.
-* **"remove-leading-white-space"**: (*Default = `True`*): Leading white-space
-	at the start of a paragraph is ocassionaly used for styling purposes
-	and rarely has significance in the interpretation of a document.
-* **"remove-trailing-white-space"**: (*Default = `True`*): Trailing white-space
-	at the end of a paragraph rarely has significance in the interpretation
-	of a document.
-* **"flatten-inner-spaces"**: (*Default = `False`*): Collapse multiple
-	space characters between words to a single space.
-* **"ignore-joiners"**: (*Default = `False`*): Zero width joiner and non-joiner 
-	characters are special characters used to create ligatures in displayed
-	text and don't typically convey meaning (at least in alphabet based
-	languages).
+### Port Already in Use
+```bash
+# Find process on port 5000
+netstat -ano | findstr :5000
 
-### Special symbols
+# Kill the process (Windows)
+taskkill /F /PID <process_id>
 
-* **"dumb-quotes"**: (*Default = `True`*): Replace smart quotes with
-	dumb quotes.
-* **"dumb-hyphens"**: (*Default = `True`*): Replace en-dash, em-dash,
-	figure-dash, horizontal bar, and non-breaking hyphens with ordinary hyphens.
-* **"dumb-spaces"**: (*Default = `True`*): Replace zero width spaces, hair 
-	spaces, thin spaces, punctuation spaces, figure spaces, six per em
-	spaces, four per em spaces, three per em spaces, em spaces, en spaces,
-	em quad spaces, and en quad spaces with ordinary spaces.
-* **"special-characters-as-text"**: (*Default = `True`*): Coerce special
-	characters into text equivalents according to the following table:
+# Kill the process (Mac/Linux)
+kill -9 <process_id>
+```
 
-| Character | Text Equivalent | 
-| --------- | --------------- | 
-| CarriageReturn | `\n` |
-| Break | `\r` |
-| TabChar | `\t` |
-| PositionalTab | `\t` |
-| NoBreakHyphen | `-` |
-| SoftHyphen | `-` |
+### JSON Validation Errors
+- Ensure JSON is properly formatted
+- Use "Format JSON" button to fix formatting
+- Check browser console for detailed error messages
 
-* **"symbol-as-text"**: (*Default = `True`*): Special symbols often cary
-	meaning other than the underlying unicode character, especially when
-	the font is a special font such as `Wingdings`. If `True` these are
-	included as ordinary text and their font information is omitted.
-* **"empty-as-text"**: (*Default = `False`*): There are a variety of "Empty"
-	tags such as the `<"w:yearLong">` tag which cause the current year to
-	be inserted into the document text. If `True`, include these as text
-	formatted as `"[yearLong]"`.
-* **"ignore-left-to-right-mark"**: (*Default = `False`*): Ignore the left-to-right
-	mark, which is not writeable by pythons csv writer.
-* **"ignore-right-to-left-mark"**: (*Default = `False`*): Ignore the right-to-left
-	mark which is not writeable by pythons csv writer.
+## 🚀 Deployment
 
-### Paragraph style:
+### Development
+```bash
+python app.py
+```
 
-Paragraph style markup are one exception to the styling vs. content
-dichotomy. For example, block quotes are often indicated by indenting whole
-paragraphs, and Ordered lists, Unordered lists and nesting of lists is
-often used to divide sections of a document into logical components. 
+### Production (using Gunicorn)
+```bash
+pip install gunicorn
+gunicorn -w 4 -b 0.0.0.0:5000 app:app
+```
 
-* **"include-paragraph-indent"**: (*Default = `True`*): Include the
-	indentation markup on paragraph (`CT_P`) elements. Indentation is
-	measured in twips
-* **"include-paragraph-numbering"**: (*Default = `True`*): Include the
-	numbering styles, which are included in the `CT_P.pPr.numPr` element.
-	The `ilvl` attribute indicates the level of nesting (zero based index)
-	and the `numId` attribute refers to a specific numbering style
-	included in the document's internal styles sheet. 
+### Docker (coming soon)
+```dockerfile
+# Dockerfile example
+FROM python:3.9
+WORKDIR /app
+COPY . .
+RUN pip install -e .
+RUN pip install flask flask-cors mammoth docx2pdf pdf2image gunicorn
+EXPOSE 5000
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
+```
 
-### Form Elements
+## 🤝 Contributing
 
-* **"simplify-dropdown"**: (*Default = `True`*): Include just the selected
-	and default values, the available options, and the name and label attributes in the form element.
-* **"simplify-textinput"**: (*Default = `True`*): Include just the current
-	and default values, and the name and label attributes in the form element.
-* **"greedy-text-input"**: (*Default = `True`*): Continue consuming run
-	elements when the text-input has not ended at the end of a paragraph,
-	and the next block level element is also a paragraph. This typically
-	occurs when the user preses the return key while editing a text input
-	field.
-* **"simplify-checkbox"**: (*Default = `True`*): Include just the current
-	and default values, and the name and label attributes in the form element.
-* **"use-checkbox-default"**: (*Default = `True`*): If the checkbox has no
-	`value` attribute (typically because the user has not interacted with
-	it), report the default value as the checkbox value.
-* **"checkbox-as-text"**: (*Default = `False`*): Coerce the value of the
-	checkbox to text, represented as either `"[CheckBox:True]"` or `"[CheckBox:False]"`
-* **"dropdown-as-text"**: (*Default = `False`*): Coerce the value of the
-	checkbox to text, represented as `"[DropDown:<selected value>]"`
-* **"trim-dropdown-options"**: (*Default = `True`*): Remove white-space on
-	the left and right of drop down option items.
-* **"flatten-generic-field"**: (*Default = `True`*): `generic-fields` are
-	`CT_FldChar` runs which are not marked as a drop-down, text-input, or
-	checkbox. These may include special instructions which apply special
-	formatting to a text run (e.g. a hyper link). If `True`, the contents
-	of generic-fields are included in the normal flow of text
+This is a private repository. For internal contributions:
 
-### Special content
+1. Create a feature branch
+2. Make your changes
+3. Test thoroughly
+4. Submit a pull request
 
-* **"flatten-hyperlink"**: (*Default = `True`*): Flatten hyperlinks, including
-	their contents in the flow of normal text.
-* **"flatten-smartTag"**: (*Default = `True`*): Flatten smartTag elements, 
-	including their contents in the flow of normal text.
-* **"flatten-customXml"**: (*Default = `True`*): Flatten customXml elements, 
-	including their contents in the flow of normal text.
-* **"flatten-simpleField"**: (*Default = `True`*): Flatten simpleField elements, 
-	including their contents in the flow of normal text.
+## 📄 License
 
-# Contributing
+This project is based on [microsoft/Simplify-Docx](https://github.com/microsoft/Simplify-Docx) and includes significant enhancements.
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.microsoft.com.
+Original Simplify-Docx library: MIT License
+Web application enhancements: MIT License
 
-When you submit a pull request, a CLA-bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+## 🙏 Acknowledgments
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+- Original Simplify-Docx library by Microsoft Research
+- Mammoth.js for DOCX to HTML conversion
+- Flask framework and community
+- All open-source contributors
+
+## 📞 Support
+
+For questions or issues, please contact your development team lead.
+
+## 🔄 Version History
+
+### v1.0.0 (Current)
+- ✨ Live JSON Editor with real-time HTML preview
+- 📊 8 different comparison view modes
+- 🎨 Modern responsive UI
+- 🖼️ Image preview support
+- 🚀 Drag & drop file upload
+- ⚡ Real-time validation and feedback
+
+---
+
+**Built with ❤️ by the Tailor-AUS Team**
