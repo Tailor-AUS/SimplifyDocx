@@ -102,3 +102,12 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Web App specific
+uploads/
+poppler-24.08.0/
+poppler.zip
+nul
+
+# Claude
+.claude/

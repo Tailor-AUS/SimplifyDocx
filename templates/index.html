@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOCX Converter - 3-Panel Comparison</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 2000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .upload-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            background: #e8ebff;
+            border-color: #764ba2;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .comparison-container {
+            display: none;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .split-view-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            height: 75vh;
+        }
+
+        .split-view-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: 75vh;
+        }
+
+        .panel {
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            overflow: auto;
+            padding: 15px;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow: auto;
+        }
+
+        .html-preview {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            min-height: 200px;
+        }
+
+        .json-preview {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        .image-preview {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .filename {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .single-view {
+            height: 75vh;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 DOCX Converter - Fidelity Comparison</h1>
+
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="fileInput" accept=".docx">
+                <p style="font-size: 18px; margin-bottom: 15px;">
+                    Drag & Drop your DOCX file here
+                </p>
+                <p style="color: #666; margin-bottom: 20px;">or</p>
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    Choose File
+                </button>
+                <p class="filename" id="filename"></p>
+            </div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px;">Processing your document...</p>
+            </div>
+            <div class="error" id="error"></div>
+        </div>
+
+        <div class="comparison-container" id="comparisonContainer">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('all3')">All 3 Panels</button>
+                <button class="tab" onclick="switchTab('original-html')">Original vs HTML</button>
+                <button class="tab" onclick="switchTab('original-json')">Original vs JSON</button>
+                <button class="tab" onclick="switchTab('html-json')">HTML vs JSON</button>
+                <button class="tab" onclick="switchTab('original')">Original Only</button>
+                <button class="tab" onclick="switchTab('html')">HTML Only</button>
+                <button class="tab" onclick="switchTab('json')">JSON Only</button>
+            </div>
+
+            <!-- All 3 Panels View -->
+            <div class="tab-content active" id="all3-content">
+                <div class="split-view-3">
+                    <div class="panel">
+                        <h3>📄 Original DOCX</h3>
+                        <div class="panel-content">
+                            <div class="image-preview" id="imagePreview1"></div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <h3>🌐 HTML Preview</h3>
+                        <div class="panel-content">
+                            <div class="html-preview" id="htmlPreview1"></div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <h3>📊 Simplified JSON</h3>
+                        <div class="panel-content">
+                            <div class="json-preview" id="jsonPreview1"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Original vs HTML -->
+            <div class="tab-content" id="original-html-content">
+                <div class="split-view-2">
+                    <div class="panel">
+                        <h3>📄 Original DOCX</h3>
+                        <div class="panel-content">
+                            <div class="image-preview" id="imagePreview2"></div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <h3>🌐 HTML Preview</h3>
+                        <div class="panel-content">
+                            <div class="html-preview" id="htmlPreview2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Original vs JSON -->
+            <div class="tab-content" id="original-json-content">
+                <div class="split-view-2">
+                    <div class="panel">
+                        <h3>📄 Original DOCX</h3>
+                        <div class="panel-content">
+                            <div class="image-preview" id="imagePreview3"></div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <h3>📊 Simplified JSON</h3>
+                        <div class="panel-content">
+                            <div class="json-preview" id="jsonPreview3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HTML vs JSON -->
+            <div class="tab-content" id="html-json-content">
+                <div class="split-view-2">
+                    <div class="panel">
+                        <h3>🌐 HTML Preview</h3>
+                        <div class="panel-content">
+                            <div class="html-preview" id="htmlPreview4"></div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <h3>📊 Simplified JSON</h3>
+                        <div class="panel-content">
+                            <div class="json-preview" id="jsonPreview4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Original Only -->
+            <div class="tab-content" id="original-content">
+                <div class="panel single-view">
+                    <h3>📄 Original DOCX</h3>
+                    <div class="panel-content">
+                        <div class="image-preview" id="imagePreview4"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HTML Only -->
+            <div class="tab-content" id="html-content">
+                <div class="panel single-view">
+                    <h3>🌐 HTML Preview</h3>
+                    <div class="panel-content">
+                        <div class="html-preview" id="htmlPreviewFull"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- JSON Only -->
+            <div class="tab-content" id="json-content">
+                <div class="panel single-view">
+                    <h3>📊 Simplified JSON</h3>
+                    <div class="panel-content">
+                        <div class="json-preview" id="jsonPreviewFull"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const filename = document.getElementById('filename');
+        const comparisonContainer = document.getElementById('comparisonContainer');
+
+        let currentData = null;
+
+        // Drag and drop handlers
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileUpload(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+
+        function handleFileUpload(file) {
+            if (!file.name.endsWith('.docx')) {
+                showError('Please upload a .docx file');
+                return;
+            }
+
+            filename.textContent = `Selected: ${file.name}`;
+            error.style.display = 'none';
+            loading.style.display = 'block';
+            comparisonContainer.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    currentData = data;
+                    displayResults(data);
+                }
+            })
+            .catch(err => {
+                loading.style.display = 'none';
+                showError('Error processing file: ' + err.message);
+            });
+        }
+
+        function displayResults(data) {
+            // Update all HTML previews
+            ['htmlPreview1', 'htmlPreview2', 'htmlPreview4', 'htmlPreviewFull'].forEach(id => {
+                const elem = document.getElementById(id);
+                if (elem) elem.innerHTML = data.html;
+            });
+
+            // Update all JSON previews
+            ['jsonPreview1', 'jsonPreview3', 'jsonPreview4', 'jsonPreviewFull'].forEach(id => {
+                const elem = document.getElementById(id);
+                if (elem) elem.textContent = data.json;
+            });
+
+            // Update all image previews
+            ['imagePreview1', 'imagePreview2', 'imagePreview3', 'imagePreview4'].forEach(id => {
+                const elem = document.getElementById(id);
+                if (elem) {
+                    if (data.image) {
+                        elem.innerHTML = `<img src="data:image/png;base64,${data.image}" alt="Original DOCX">`;
+                    } else {
+                        elem.innerHTML = '<div class="warning">⚠️ Image preview not available. Install Poppler for PDF conversion.</div>';
+                    }
+                }
+            });
+
+            comparisonContainer.style.display = 'block';
+        }
+
+        function showError(message) {
+            error.textContent = message;
+            error.style.display = 'block';
+        }
+
+        function switchTab(tab) {
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            // Add active class to selected tab
+            event.target.classList.add('active');
+
+            // Show corresponding content
+            document.getElementById(`${tab}-content`).classList.add('active');
+        }
+    </script>
+</body>
+</html>
