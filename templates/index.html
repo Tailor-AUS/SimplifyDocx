@@ -161,6 +161,52 @@
             padding: 20px;
             border-radius: 5px;
             min-height: 200px;
+            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .html-preview p {
+            margin-top: 0;
+            margin-bottom: 1em;
+            display: block;
+        }
+
+        .html-preview h1, .html-preview h2, .html-preview h3 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            font-weight: bold;
+            display: block;
+        }
+
+        .html-preview h1 {
+            font-size: 2em;
+        }
+
+        .html-preview h2 {
+            font-size: 1.5em;
+        }
+
+        .html-preview h3 {
+            font-size: 1.17em;
+        }
+
+        .html-preview table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+            display: table;
+        }
+
+        .html-preview td, .html-preview th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            display: table-cell;
+        }
+
+        .html-preview tr {
+            display: table-row;
         }
 
         .json-preview {
@@ -172,6 +218,90 @@
             font-size: 13px;
             overflow-x: auto;
             white-space: pre-wrap;
+        }
+
+        .json-editor {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            border: 2px solid #667eea;
+            min-height: 300px;
+            resize: vertical;
+            width: 100%;
+        }
+
+        .json-editor:focus {
+            outline: none;
+            border-color: #764ba2;
+        }
+
+        .edit-controls {
+            margin-bottom: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-small {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-small:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-small:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            font-size: 12px;
+            padding: 5px 10px;
+            border-radius: 3px;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: #28a745;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #28a745;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .image-preview {
@@ -236,6 +366,43 @@
             margin-top: 10px;
             font-size: 14px;
         }
+
+        .page-navigation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 15px;
+            background: #f0f2ff;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .page-nav-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+
+        .page-nav-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .page-nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            font-size: 16px;
+            font-weight: bold;
+            color: #667eea;
+        }
     </style>
 </head>
 <body>
@@ -271,6 +438,19 @@
                 <button class="tab" onclick="switchTab('html')">HTML Only</button>
                 <button class="tab" onclick="switchTab('json')">JSON Only</button>
             </div>
+            <div style="text-align: center; padding: 10px; background: #f0f2ff; border-radius: 5px; margin-bottom: 10px;">
+                <span class="live-indicator" style="display: inline-flex;">
+                    <span class="live-dot"></span>
+                    JSON panels are editable - changes update HTML in real-time
+                </span>
+            </div>
+
+            <!-- Page Navigation -->
+            <div class="page-navigation" id="pageNavigation" style="display: none;">
+                <button class="page-nav-btn" id="prevPageBtn" onclick="changePage(-1)">← Previous Page</button>
+                <span class="page-info" id="pageInfo">Page 1 of 1</span>
+                <button class="page-nav-btn" id="nextPageBtn" onclick="changePage(1)">Next Page →</button>
+            </div>
 
             <!-- All 3 Panels View -->
             <div class="tab-content active" id="all3-content">
@@ -288,9 +468,9 @@
                         </div>
                     </div>
                     <div class="panel">
-                        <h3>📊 Simplified JSON</h3>
+                        <h3>📊 Simplified JSON (Editable)</h3>
                         <div class="panel-content">
-                            <div class="json-preview" id="jsonPreview1"></div>
+                            <textarea class="json-editor" id="jsonPreview1" spellcheck="false" data-html-target="htmlPreview1"></textarea>
                         </div>
                     </div>
                 </div>
@@ -324,9 +504,9 @@
                         </div>
                     </div>
                     <div class="panel">
-                        <h3>📊 Simplified JSON</h3>
+                        <h3>📊 Simplified JSON (Editable)</h3>
                         <div class="panel-content">
-                            <div class="json-preview" id="jsonPreview3"></div>
+                            <textarea class="json-editor" id="jsonPreview3" spellcheck="false"></textarea>
                         </div>
                     </div>
                 </div>
@@ -342,9 +522,9 @@
                         </div>
                     </div>
                     <div class="panel">
-                        <h3>📊 Simplified JSON</h3>
+                        <h3>📊 Simplified JSON (Editable)</h3>
                         <div class="panel-content">
-                            <div class="json-preview" id="jsonPreview4"></div>
+                            <textarea class="json-editor" id="jsonPreview4" spellcheck="false" data-html-target="htmlPreview4"></textarea>
                         </div>
                     </div>
                 </div>
@@ -373,9 +553,9 @@
             <!-- JSON Only -->
             <div class="tab-content" id="json-content">
                 <div class="panel single-view">
-                    <h3>📊 Simplified JSON</h3>
+                    <h3>📊 Simplified JSON (Editable)</h3>
                     <div class="panel-content">
-                        <div class="json-preview" id="jsonPreviewFull"></div>
+                        <textarea class="json-editor" id="jsonPreviewFull" spellcheck="false"></textarea>
                     </div>
                 </div>
             </div>
@@ -391,6 +571,8 @@
         const comparisonContainer = document.getElementById('comparisonContainer');
 
         let currentData = null;
+        let currentPage = 0;  // 0-indexed
+        let totalPages = 1;
 
         // Drag and drop handlers
         uploadArea.addEventListener('dragover', (e) => {
@@ -453,31 +635,176 @@
         }
 
         function displayResults(data) {
-            // Update all HTML previews
-            ['htmlPreview1', 'htmlPreview2', 'htmlPreview4', 'htmlPreviewFull'].forEach(id => {
-                const elem = document.getElementById(id);
-                if (elem) elem.innerHTML = data.html;
-            });
+            // Debug: Log received data structure
+            console.log('=== RECEIVED DATA ===');
+            console.log('Page count:', data.pageCount);
+            console.log('HTML pages:', data.htmlPages ? data.htmlPages.length : 'none');
+            console.log('JSON pages:', data.jsonPages ? data.jsonPages.length : 'none');
+            console.log('Images:', data.images ? data.images.length : 'none');
+            console.log('Data structure:', data);
 
-            // Update all JSON previews
-            ['jsonPreview1', 'jsonPreview3', 'jsonPreview4', 'jsonPreviewFull'].forEach(id => {
-                const elem = document.getElementById(id);
-                if (elem) elem.textContent = data.json;
-            });
+            // Store data and initialize pages
+            currentData = data;
+            currentPage = 0;
+            totalPages = data.pageCount || 1;
 
-            // Update all image previews
-            ['imagePreview1', 'imagePreview2', 'imagePreview3', 'imagePreview4'].forEach(id => {
-                const elem = document.getElementById(id);
-                if (elem) {
-                    if (data.image) {
-                        elem.innerHTML = `<img src="data:image/png;base64,${data.image}" alt="Original DOCX">`;
-                    } else {
-                        elem.innerHTML = '<div class="warning">⚠️ Image preview not available. Install Poppler for PDF conversion.</div>';
-                    }
-                }
-            });
+            // Update FULL views with complete HTML and JSON
+            const htmlPreviewFull = document.getElementById('htmlPreviewFull');
+            if (htmlPreviewFull) htmlPreviewFull.innerHTML = data.html;
+
+            const jsonPreviewFull = document.getElementById('jsonPreviewFull');
+            if (jsonPreviewFull) jsonPreviewFull.textContent = data.json;
+
+            // Update JSON editor with full JSON
+            const jsonEditor = document.getElementById('jsonEditor');
+            if (jsonEditor) {
+                jsonEditor.value = data.json;
+            }
+
+            // Initialize live preview with original HTML
+            const liveHtmlPreview = document.getElementById('liveHtmlPreview');
+            if (liveHtmlPreview) {
+                liveHtmlPreview.innerHTML = data.html;
+            }
+
+            // Display current page (will update paginated views)
+            updatePageDisplay();
 
             comparisonContainer.style.display = 'block';
+
+            // Show page navigation if multiple pages
+            const pageNav = document.getElementById('pageNavigation');
+            if (totalPages > 1) {
+                pageNav.style.display = 'flex';
+                updatePageNavigation();
+            } else {
+                pageNav.style.display = 'none';
+            }
+
+            // Enable live editing on all JSON editors
+            enableLiveEditingOnAllJSONPanels();
+        }
+
+        function updatePageDisplay() {
+            if (!currentData) return;
+
+            // Update all image previews with current page
+            if (currentData.images && currentData.images.length > 0) {
+                ['imagePreview1', 'imagePreview2', 'imagePreview3', 'imagePreview4'].forEach(id => {
+                    const elem = document.getElementById(id);
+                    if (elem) {
+                        if (currentData.images[currentPage]) {
+                            elem.innerHTML = `<img src="data:image/png;base64,${currentData.images[currentPage]}" alt="Original DOCX Page ${currentPage + 1}">`;
+                        } else {
+                            elem.innerHTML = '<div class="warning">⚠️ Image preview not available. Install Poppler for PDF conversion.</div>';
+                        }
+                    }
+                });
+            }
+
+            // Update HTML previews with current page HTML (if available)
+            if (currentData.htmlPages && currentData.htmlPages.length > 0) {
+                ['htmlPreview1', 'htmlPreview2', 'htmlPreview4'].forEach(id => {
+                    const elem = document.getElementById(id);
+                    if (elem && currentData.htmlPages[currentPage]) {
+                        elem.innerHTML = currentData.htmlPages[currentPage];
+                    }
+                });
+            }
+
+            // Update JSON previews with current page JSON (if available)
+            if (currentData.jsonPages && currentData.jsonPages.length > 0) {
+                ['jsonPreview1', 'jsonPreview3', 'jsonPreview4'].forEach(id => {
+                    const elem = document.getElementById(id);
+                    if (elem && currentData.jsonPages[currentPage]) {
+                        elem.textContent = currentData.jsonPages[currentPage];
+                    }
+                });
+            }
+        }
+
+        function changePage(delta) {
+            const newPage = currentPage + delta;
+            if (newPage >= 0 && newPage < totalPages) {
+                currentPage = newPage;
+                updatePageDisplay();
+                updatePageNavigation();
+            }
+        }
+
+        function updatePageNavigation() {
+            document.getElementById('pageInfo').textContent = `Page ${currentPage + 1} of ${totalPages}`;
+            document.getElementById('prevPageBtn').disabled = (currentPage === 0);
+            document.getElementById('nextPageBtn').disabled = (currentPage === totalPages - 1);
+        }
+
+        function enableLiveEditingOnAllJSONPanels() {
+            // Find all JSON editors
+            const jsonEditors = document.querySelectorAll('.json-editor');
+
+            jsonEditors.forEach(editor => {
+                // Add input event listener for live updates
+                editor.addEventListener('input', function() {
+                    handleJSONEdit(this);
+                });
+            });
+        }
+
+        let updateTimeouts = {};
+
+        function handleJSONEdit(editor) {
+            const editorId = editor.id;
+            const htmlTarget = editor.getAttribute('data-html-target');
+
+            // Debounce updates
+            clearTimeout(updateTimeouts[editorId]);
+            updateTimeouts[editorId] = setTimeout(() => {
+                updateHTMLFromJSON(editor, htmlTarget);
+            }, 500); // Wait 500ms after user stops typing
+        }
+
+        function updateHTMLFromJSON(editor, htmlTargetId) {
+            const jsonText = editor.value;
+
+            try {
+                // Validate JSON
+                const jsonData = JSON.parse(jsonText);
+
+                // If there's a corresponding HTML panel, update it
+                if (htmlTargetId) {
+                    fetch('/json-to-html', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ json: jsonData })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Received data from server:', data);
+                        console.log('HTML length:', data.html ? data.html.length : 0);
+                        console.log('First 200 chars of HTML:', data.html ? data.html.substring(0, 200) : 'none');
+                        if (!data.error) {
+                            const htmlPanel = document.getElementById(htmlTargetId);
+                            if (htmlPanel) {
+                                console.log('Setting innerHTML on element:', htmlTargetId);
+                                htmlPanel.innerHTML = data.html;
+                                console.log('innerHTML set successfully');
+                            } else {
+                                console.error('HTML panel not found:', htmlTargetId);
+                            }
+                        } else {
+                            console.error('Server returned error:', data.error);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error updating HTML:', err);
+                    });
+                }
+            } catch (e) {
+                // Invalid JSON - user is still typing
+                console.log('Invalid JSON (user still editing)');
+            }
         }
 
         function showError(message) {
@@ -495,6 +822,105 @@
 
             // Show corresponding content
             document.getElementById(`${tab}-content`).classList.add('active');
+        }
+
+        // Old Live JSON Editor functionality - kept for compatibility
+        let livePreviewEnabled = false;
+        let updateTimeout = null;
+
+        function enableLivePreview() {
+            livePreviewEnabled = !livePreviewEnabled;
+            const indicator = document.getElementById('liveIndicator');
+            const enableBtn = document.getElementById('enableLiveBtn');
+            const updateBtn = document.getElementById('updateBtn');
+
+            if (livePreviewEnabled) {
+                indicator.style.display = 'inline-flex';
+                enableBtn.textContent = 'Disable Live Preview';
+                updateBtn.disabled = true;
+
+                // Add input listener for live updates
+                const editor = document.getElementById('jsonEditor');
+                editor.addEventListener('input', handleLiveInput);
+
+                showStatus('Live preview enabled!', 'success');
+            } else {
+                indicator.style.display = 'none';
+                enableBtn.textContent = 'Enable Live Preview';
+                updateBtn.disabled = false;
+
+                // Remove input listener
+                const editor = document.getElementById('jsonEditor');
+                editor.removeEventListener('input', handleLiveInput);
+
+                showStatus('Live preview disabled', 'success');
+            }
+        }
+
+        function handleLiveInput() {
+            // Debounce updates to avoid too many requests
+            clearTimeout(updateTimeout);
+            updateTimeout = setTimeout(() => {
+                updatePreview();
+            }, 500); // Wait 500ms after user stops typing
+        }
+
+        function updatePreview() {
+            const jsonEditor = document.getElementById('jsonEditor');
+            const jsonText = jsonEditor.value;
+
+            try {
+                // Validate JSON
+                const jsonData = JSON.parse(jsonText);
+
+                // Send to server to convert to HTML
+                fetch('/json-to-html', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ json: jsonData })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showStatus(data.error, 'error');
+                    } else {
+                        const liveHtmlPreview = document.getElementById('liveHtmlPreview');
+                        liveHtmlPreview.innerHTML = data.html;
+                        showStatus('Preview updated!', 'success');
+                    }
+                })
+                .catch(err => {
+                    showStatus('Error updating preview: ' + err.message, 'error');
+                });
+
+            } catch (e) {
+                showStatus('Invalid JSON: ' + e.message, 'error');
+            }
+        }
+
+        function formatJSON() {
+            const jsonEditor = document.getElementById('jsonEditor');
+            try {
+                const jsonData = JSON.parse(jsonEditor.value);
+                jsonEditor.value = JSON.stringify(jsonData, null, 2);
+                showStatus('JSON formatted!', 'success');
+            } catch (e) {
+                showStatus('Cannot format invalid JSON', 'error');
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusMsg = document.getElementById('statusMessage');
+            statusMsg.textContent = message;
+            statusMsg.className = 'status-message status-' + type;
+
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                statusMsg.textContent = '';
+                statusMsg.className = 'status-message';
+            }, 3000);
         }
     </script>
 </body>
